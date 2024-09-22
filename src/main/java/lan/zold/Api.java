@@ -2,6 +2,8 @@ package lan.zold;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.gson.Gson;
 
@@ -11,7 +13,7 @@ import kong.unirest.core.Unirest;
 
 public class Api {
   
-  String url = "http://[::1]:8000/employees";
+  String url = "http://[::1]:8000/api/employees";
 
   public ArrayList<Employee> getEmployees() {    
     HttpResponse<JsonNode> apiResponse = 
@@ -25,28 +27,44 @@ public class Api {
     return employeeList;
   }
 
-  public String createEmployee(Employee employee) {
+  public String createEmployee(Employee employee, String... token) {
+    Map<String, String> headers = new HashMap<>();
+    if(token.length > 0) {
+      headers.put("Authorization", "Bearer " + token[0]);
+    }
+    headers.put("Content-Type", "application/json");
     Gson gson = new Gson();
     String json = gson.toJson(employee);
     HttpResponse<String> apiResponse = Unirest.post(url)
-        .header("Content-Type", "application/json")
+        .headers(headers)
         .body(json)
         .asString();
     return apiResponse.getBody();
   }
 
-  public String updateEmployee(Employee employee) {
+  public String updateEmployee(Employee employee, String... token) {
+    String fullUrl = url + "/" + employee.id;
+    Map<String, String> headers = new HashMap<>();
+    if(token.length > 0) {
+      headers.put("Authorization", "Bearer " + token[0]);
+    }
+    headers.put("Content-Type", "application/json");
     Gson gson = new Gson();
     String json = gson.toJson(employee);
-    HttpResponse<String> apiResponse = Unirest.put(url + "/" + employee.id)
-        .header("Content-Type", "application/json")
+    HttpResponse<String> apiResponse = Unirest.put(fullUrl)
+        .headers(headers)
         .body(json)
         .asString();
     return apiResponse.getBody();
   }
 
-  public String deleteEmployee(Integer id) {
-    HttpResponse<String> apiResponse = Unirest.delete(url + "/" + id)
+  public String deleteEmployee(Integer id, String... token) {
+    String fullUrl = url + "/" + id;
+    Map<String, String> headers = new HashMap<>();
+    if(token.length > 0) {
+      headers.put("Authorization", "Bearer " + token[0]);    }
+    HttpResponse<String> apiResponse = Unirest.delete(fullUrl)
+        .headers(headers)
         .asString();
     return apiResponse.getBody();
   }
